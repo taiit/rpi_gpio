@@ -22,16 +22,19 @@ class main(QMainWindow):
 			print('In Development')
 			devel = True
 		uic.loadUi(os.path.join(lib_path, 'rpi-gpio.ui'), self)
-		#self.setGeometry(50, 50, 500, 300)
+		self.setGeometry(50, 50, 300, 200)
 		self.setWindowTitle("Rpi GPIO Calculator")
 		pixmap = QPixmap('pinout.png')
 		self.pinoutLBL.setPixmap(pixmap)
 		self.getHalPB.clicked.connect(self.getHal)
+		self.revertHalPB.clicked.connect(self.revertHal)
 		cbStuff = (('Excluded', (0,1)), ('Input', (0,0)), ('Output', (1,0)))
 		for i in range(26):
 			for item in cbStuff:
 				getattr(self, f'select_{i}').addItem(item[0], item[1])
 		self.show()
+		# Sample
+		#self.halInput.setText(f'loadrt hal_pi_gpio dir=16910360 exclude=50198503')
 
 	def getHal(self):
 		dir_mask = 0.0
@@ -40,7 +43,37 @@ class main(QMainWindow):
 			dir_mask += (getattr(self, f'select_{i}').currentData()[0] * pow(2, i))
 		for i in range(26):
 			exclude_mask += (getattr(self, f'select_{i}').currentData()[1] * pow(2, i))
+		
 		self.halLE.setText(f'loadrt hal_pi_gpio dir={int(dir_mask)} exclude={int(exclude_mask)}')
+
+	def selectCombox(self, cmbo, str):
+		idx = cmbo.findText(str)
+		if idx != -1 :
+			cmbo.setCurrentIndex(idx)
+	
+	def get_bit_value(self, value, bit_index):
+		return ( (value & (1 << bit_index)) >> bit_index )
+
+	def revertHal(self):
+		text = self.halInput.text().replace(" ", "")
+		# The format is: loadrt hal_pi_gpio dir=16910360 exclude=50198503
+		idx_1 = text.find('dir=')
+		idx_2 = text.find('exclude=')
+		dir_mask = int(text[idx_1 + 4 : idx_2])
+		exclude_mask = int(text[idx_2 + 8: len(text)])
+		# cbStuff = (('Excluded', (0,1)), ('Input', (0,0)), ('Output', (1,0)))
+		for i in range(26):
+			obj = getattr(self, f'select_{i}')
+			data = self.get_bit_value(dir_mask, i)
+			if data == 1:
+				self.selectCombox(obj, "Output")
+			else:
+				self.selectCombox(obj, "Input")
+		for i in range(26):
+			obj = getattr(self, f'select_{i}')
+			data = self.get_bit_value(exclude_mask, i)
+			if data == 1:
+				self.selectCombox(obj, "Excluded")
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

@@ -44,8 +44,25 @@
                 </property>
                </widget>
               </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="revertHalPB">
+                <property name="text">
+                 <string>Revert From HAL</string>
+                </property>
+               </widget>
+              </item>           
               <item row="1" column="0">
                <widget class="QLineEdit" name="halLE">
+                <property name="minimumSize">
+                 <size>
+                  <width>350</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="halInput">
                 <property name="minimumSize">
                  <size>
                   <width>350</width>
